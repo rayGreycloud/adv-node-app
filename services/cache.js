@@ -63,3 +63,9 @@ mongoose.Query.prototype.exec = async function () {
   // return db result   
   return result;
 };
+
+module.exports = {
+  clearHash(hashKey) {
+    client.del(JSON.stringify(hashKey));
+  }
+}
