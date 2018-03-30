@@ -7,12 +7,27 @@ const redisUrl = `redis://127.0.0.1:6379`;
 // Create redis client
 const client = redis.createClient(redisUrl);
 // Make client use promises instead of cb 
-client.get = util.promisify(client.get);
+client.hget = util.promisify(client.hget);
 // Save original function 
 const exec = mongoose.Query.prototype.exec;
 
+// Custom cache method with flag
+mongoose.Query.prototype.cache = function (options = {}) {
+  this.useCache = true;
+  this.hashKey = JSON.stringify(options.key || '');
+  
+  // Make chainable 
+  return this;
+}
+
 // Overwrite exec method
 mongoose.Query.prototype.exec = async function () {
+  // Check cache flag 
+  if (!this.useCache) {
+    // Skip cache logic is false 
+    return exec.apply(this, arguments);
+  }
+  
   // Create object key with query and collection
   const key = JSON.stringify(Object.assign(
     {}, 
@@ -23,7 +38,7 @@ mongoose.Query.prototype.exec = async function () {
   ));
 
   // Look for key in redis 
-  const cacheValue = await client.get(key);
+  const cacheValue = await client.hget(this.hashKey, key);
   
   // If found, return value
   if (cacheValue) {
@@ -43,7 +58,7 @@ mongoose.Query.prototype.exec = async function () {
   const result = await exec.apply(this, arguments);
   
   // Save query key and stringify'd result in redis 
-  client.set(key, JSON.stringify(result));
+  client.hmset(this.hashKey, key, JSON.stringify(result), 'EX', 10);
 
   // return db result   
   return result;
