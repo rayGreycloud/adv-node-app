@@ -1,4 +1,7 @@
 const puppeteer = require('puppeteer');
+const sessionFactory = require('./factories/sessionFactory');
+const userFactory = require('./factories/userFactory');
+
 let brower;
 let page;
 
@@ -34,31 +37,15 @@ test('Should start oauth flow when login clicked', async () => {
   expect(url).toMatch(/accounts\.google\.com/);
 });
 
-test.only('Should show logout button when signed in', async () => {
-  // db user id
-  const id = "5abd55ccba969806545e328a";
-  // Create buffer instance
-  const Buffer = require('safe-buffer').Buffer;
-  // Create session object
-  const sessionObject = {
-    passport: {
-      user: id
-    }
-  };
-  // Create session string 
-  const sessionString = Buffer.from(
-    JSON.stringify(sessionObject)
-  ).toString('base64');
-
-  // Create signature 
-  const Keygrip = require('keygrip');
-  const keys = require('../config/keys');
-  const keygrip = new Keygrip([keys.cookieKey]);
-  const sig = keygrip.sign(`session=${sessionString}`);
+test('Should show logout button when signed in', async () => {
+  // Get user from user factory 
+  const user = await userFactory();
+  // Pass in user and get session 
+  const { session, sig } = sessionFactory(user);
   // Set cookies 
   await page.setCookie({
     name: 'session',
-    value: sessionString
+    value: session
   });
   await page.setCookie({
     name: 'session.sig',
@@ -66,6 +53,11 @@ test.only('Should show logout button when signed in', async () => {
   });
   // Refresh page 
   await page.goto('localhost:3000');
+  // 
+  await page.waitFor('a[href="/auth/logout"]');
+  // Get logout button
+  const text = await page.$eval('a[href="/auth/logout"]', el => el.innerHTML);
   
+  expect(text).toEqual('Logout');
 });
 
