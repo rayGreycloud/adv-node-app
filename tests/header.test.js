@@ -16,7 +16,7 @@ afterEach(async () => {
 
 test('Should have correct text in header', async () => {
   // Get element text 
-  const text  = await page.$eval('a.brand-logo', el => el.innerHTML);
+  const text  = await page.getContentsOf('a.brand-logo');
   // Check value 
   expect(text).toEqual('Blogster');
 });
@@ -34,7 +34,7 @@ test('Should show logout button when signed in', async () => {
   await page.login();
   
   // Get logout button
-  const text = await page.$eval('a[href="/auth/logout"]', el => el.innerHTML);
+  const text = await page.getContentsOf('a[href="/auth/logout"]');
   
   expect(text).toEqual('Logout');
 });
