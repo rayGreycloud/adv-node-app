@@ -36,10 +36,14 @@ class CustomPage {
       name: 'session.sig',
       value: sig
     });
-    // Refresh page 
-    await this.page.goto('localhost:3000');
+    // Refresh and redirect
+    await this.page.goto('localhost:3000/blogs');
     // Wait until element appears
     await this.page.waitFor('a[href="/auth/logout"]');    
+  }
+  
+  async getContentsOf(selector) {
+    return this.page.$eval(selector, el => el.innerHTML);    
   }
 }
 
