@@ -1,3 +1,7 @@
+// Extend Jest to avoid timeout 
+jest.setTimeout(30000);
+
+// Mongo setup
 require('../models/User');
 
 const mongoose = require('mongoose');
