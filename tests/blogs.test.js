@@ -16,53 +16,92 @@ describe('When logged in', async () => {
     await page.login();
     await page.click('a.btn-floating');
   });
-  
+
   test('On button click, the new blog form should be shown', async () => {
     const label = await page.getContentsOf('form label');
-    
+
     expect(label).toEqual('Blog Title');
   });  
-  
+
   describe('When using valid form inputs', async () => {
     const testTitle = 'Test Blog Entry';
     const testContent = 'This is the content of the test blog entry.';
-        
+
     beforeEach(async () =>{      
       await page.type('.title input', testTitle);
       await page.type('.content input', testContent);
       await page.click('form button');
     });
-    
+
     test('On submit, the review screen should be shown', async () => {
       const text = await page.getContentsOf('h5');
-      
+
       expect(text).toEqual('Please confirm your entries');
     });
-    
+
     test('On save, the new blog is added to index page', async () => {
       await page.click('button.green');
       await page.waitFor('.card');
-      
+
       const title = await page.getContentsOf('.card-title');
       const content = await page.getContentsOf('.card-content p');
-      
+
       expect(title).toEqual(testTitle);
       expect(content).toEqual(testContent);
     });
   });  
-  
+
   describe('When using invalid form inputs', async () => {
     beforeEach(async () => {
       await page.click('form button');
     });
-    
+
     test('The form should show an error message', async () => {
       const titleError = await page.getContentsOf('.title .red-text');
       const contentError = await page.getContentsOf('.content .red-text');
-      
+
       expect(titleError).toEqual('You must provide a value');
       expect(contentError).toEqual('You must provide a value');
     });
   });
 });
 
+describe('When not logged in', async () => {  
+
+  test('User cannot create blog post', async () => {    
+    const result = await page.evaluate(
+      () => {
+        return fetch('/api/blogs', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {
+            'Content-type': 'application/json'
+          },
+          body: JSON.stringify({
+            title: 'Blog Entry Test 2',
+            content: 'This is the content of the 2nd test blog entry.'
+          })
+        }).then(res => res.json());
+      }
+    );
+    
+    expect(result).toEqual({ error: 'You must log in!' });
+  });
+  
+  test('User cannot view list of blog posts', async () => {
+    const result = await page.evaluate(
+      () => {
+        return fetch('/api/blogs', {
+          method: 'GET',
+          credentials: 'same-origin',
+          headers: {
+            'Content-type': 'application/json'
+          }
+        }).then(res => res.json());
+      }
+    );
+    
+    expect(result).toEqual({ error: 'You must log in!' });     
+  });
+  
+});
