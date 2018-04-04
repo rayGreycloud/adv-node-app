@@ -1,0 +1,40 @@
+# language
+language: node_js
+# version
+node_js:
+  - "8"
+# designate OS dist to use
+dist: trusty
+
+# services needed for app
+services:
+  - mongodb
+  - redis-server
+  
+# environment variables 
+env: 
+  - NODE_ENV=ci PORT=3000
+
+# set cache 
+cache: 
+  directories: 
+    - node_modules
+    - client/node_modules
+
+# setup commands
+install: 
+  # install dependencies
+  - npm install 
+  # runs react client build commands
+  - npm run build
+
+# startup server and test 
+script: 
+  # nohup = no hangup i.e. if shell closed don't kill running processes
+  # & = run command in background subshell
+  - nohup npm run start &
+  # wait 3 seconds to ensure everything running
+  - sleep 3
+  # run tests 
+  - npm run test
+  
