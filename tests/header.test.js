@@ -7,7 +7,7 @@ describe('The Header', async () => {
     // Open tab
     page = await Page.build();
     // Navigate to app 
-    await page.goto('localhost:3000');
+    await page.goto('http://localhost:3000');
   });
 
   afterEach(async () => {
