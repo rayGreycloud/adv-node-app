@@ -4,7 +4,7 @@ const util = require('util'); // Part of node
 const key = require('../config/keys');
 
 // Create redis client
-const client = redis.createClient(keys.redisUrl);
+const client = redis.createClient(key.redisUrl);
 // Make client use promises instead of cb 
 client.hget = util.promisify(client.hget);
 // Save original function 
